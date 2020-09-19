@@ -31,7 +31,7 @@ spec:
       readOnlyRootFilesystem: false
     volumeMounts:
     - mountPath: /etc/nginx/conf.d:Z
-      name: home-blue-podman-playground-nginx
+      name: home-blue-nginx-proxy-pod-nginx
     workingDir: /
   - command:
     - catalina.sh
@@ -67,16 +67,16 @@ spec:
       readOnlyRootFilesystem: false
     volumeMounts:
     - mountPath: /app:Z
-      name: home-blue-podman-playground-python-api-app
+      name: home-blue-nginx-proxy-pod-python-api-app
     workingDir: /app
   volumes:
   - hostPath:
-      path: /home/blue/podman/playground/nginx
+      path: /home/blue/nginx-proxy-pod/nginx
       type: Directory
-    name: home-blue-podman-playground-nginx
+    name: home-blue-nginx-proxy-pod-nginx
   - hostPath:
-      path: /home/blue/podman/playground/python-api/app
+      path: /home/blue/nginx-proxy-pod/python-api/app
       type: Directory
-    name: home-blue-podman-playground-python-api-app
+    name: home-blue-nginx-proxy-pod-python-api-app
 status: {}
 
