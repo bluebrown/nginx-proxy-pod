@@ -7,18 +7,19 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  creationTimestamp: "2020-09-19T08:38:11Z"
+  creationTimestamp: "2020-09-19T21:26:09Z"
   labels:
     app: playground
   name: playground
 spec:
   containers:
   - command:
-    - nginx
-    - -g
-    - daemon off;
-    image: docker.io/library/nginx:latest
-    name: nginx
+    - /bin/bash
+    - -c
+    - mv /usr/local/tomcat/webapps /usr/local/tomcat/webapps2; mv /usr/local/tomcat/webapps.dist
+      /usr/local/tomcat/webapps; catalina.sh run
+    image: docker.io/library/tomcat:latest
+    name: tomcat
     ports:
     - containerPort: 80
       hostPort: 8080
@@ -30,20 +31,10 @@ spec:
       privileged: false
       readOnlyRootFilesystem: false
     volumeMounts:
-    - mountPath: /etc/nginx/conf.d:Z
-      name: home-blue-nginx-proxy-pod-nginx
-    workingDir: /
-  - command:
-    - catalina.sh
-    - run
-    image: docker.io/library/tomcat:latest
-    name: tomcat
-    resources: {}
-    securityContext:
-      allowPrivilegeEscalation: true
-      capabilities: {}
-      privileged: false
-      readOnlyRootFilesystem: false
+    - mountPath: /usr/local/tomcat/webapps.dist/manager/META-INF/context.xml:Z
+      name: home-blue-nginx-proxy-pod-tomcat-context.xml
+    - mountPath: /usr/local/tomcat/conf/tomcat-users.xml:Z
+      name: home-blue-nginx-proxy-pod-tomcat-tomcat-users.xml
     workingDir: /usr/local/tomcat
   - command:
     - flask
@@ -53,11 +44,11 @@ spec:
     env:
     - name: FLASK_DEBUG
       value: "1"
-    - name: FLASK_ENV
-      value: development
     - name: FLASK_APP
       value: app.py
-    image: localhost/flask:latest
+    - name: FLASK_ENV
+      value: development
+    image: localhost/test:latest
     name: flask
     resources: {}
     securityContext:
@@ -69,14 +60,44 @@ spec:
     - mountPath: /app:Z
       name: home-blue-nginx-proxy-pod-python-api-app
     workingDir: /app
+  - command:
+    - nginx
+    - -g
+    - daemon off;
+    image: docker.io/library/nginx:latest
+    name: nginx
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: true
+      capabilities: {}
+      privileged: false
+      readOnlyRootFilesystem: false
+    volumeMounts:
+    - mountPath: /etc/nginx/conf.d:Z
+      name: home-blue-nginx-proxy-pod-nginx-conf.d
+    - mountPath: /usr/share/nginx/html:Z
+      name: home-blue-nginx-proxy-pod-nginx-html
+    workingDir: /
   volumes:
   - hostPath:
-      path: /home/blue/nginx-proxy-pod/nginx
-      type: Directory
-    name: home-blue-nginx-proxy-pod-nginx
+      path: /home/blue/nginx-proxy-pod/tomcat/context.xml
+      type: File
+    name: home-blue-nginx-proxy-pod-tomcat-context.xml
+  - hostPath:
+      path: /home/blue/nginx-proxy-pod/tomcat/tomcat-users.xml
+      type: File
+    name: home-blue-nginx-proxy-pod-tomcat-tomcat-users.xml
   - hostPath:
       path: /home/blue/nginx-proxy-pod/python-api/app
       type: Directory
     name: home-blue-nginx-proxy-pod-python-api-app
+  - hostPath:
+      path: /home/blue/nginx-proxy-pod/nginx/conf.d
+      type: Directory
+    name: home-blue-nginx-proxy-pod-nginx-conf.d
+  - hostPath:
+      path: /home/blue/nginx-proxy-pod/nginx/html
+      type: Directory
+    name: home-blue-nginx-proxy-pod-nginx-html
 status: {}
 
