@@ -9,6 +9,7 @@ Example pod configuration. Nginx reverse proxy, python api, and tomcat.
 ```
 podman build -t flask python-api/
 podman build -t tomcat:custom tomcat/
+podman build -t mongo:custom mongo/  
 ```
 
 ### adjust the volume mapping 
@@ -57,27 +58,36 @@ podman pod create --name playground -p 8080:80
 ### Nginx
 
 ```shell
-podman run -d --pod playground --name nginx \
+podman run --rm -d -ti --pod playground --name nginx \
   -v $PWD/nginx/conf.d:/etc/nginx/conf.d:Z \
-  -v $PWD/nginx/html:/usr/share/nginx/html:Z
   nginx
 ```
 
 ### Flask
 
 ```shell
-podman run -d --pod playground --name flask \
-  -v $PWD/python-api/app:/app:Z 
-  flask
+podman run --rm -d -ti --pod playground --name flask \
+  -v $PWD/python-api/app:/app:Z \
+  flask:custom
 ```
 
 ### Tomcat
 
 ```shell
-podman run -d --pod playground --name tomcat \
+podman run --rm -d -ti --pod playground --name tomcat \
   -v $PWD/tomcat/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml:Z \
   -v $PWD/tomcat/context.xml:/usr/local/tomcat/conf/context.xml:Z \
   tomcat:custom
+```
+
+### Mongo DB
+
+```shell
+podman run --rm -d -ti --pod playground --name mongo \
+    -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
+    -e MONGO_INITDB_ROOT_PASSWORD=secret \
+    -e MONGO_INITDB_DATABASE=admin \
+    mongo:custom
 ```
 
 ## Generating a pod.yaml
