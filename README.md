@@ -1,55 +1,32 @@
-# Server Setup
+#  Nginx Proxy Pod
 
-Example pod configuration. Nginx reverse proxy, python api, and tomcat.
+Example pod configuration. Nginx reverse proxy, python api, tomcat and mongo db.
 
-## Setup
+## Quick Start
 
-### Build the docker images
+### Building the Images
 
-```
+```shell
 podman build -t fastapi python-api/
 podman build -t tomcat:custom tomcat/
 podman build -t mongo:custom mongo/  
 ```
 
-### adjust the volume mapping 
-
-In the pod.yaml, change the path for both volumes to the path of the repoistory.
-
-```yaml
-...
-volumes:
-  - hostPath:
-      path: /home/blue/nginx-proxy-pod/tomcat/tomcat-users.xml
-      type: File
-    name: home-blue-nginx-proxy-pod-tomcat-tomcat-users.xml
-...
-```
-
-Don't forget to append `:Z` to each mount path, if you are on selinux. I.E.
-
-```yaml
-...
-volumeMounts:
-  - mountPath: /etc/nginx/conf.d:Z
-    name: home-blue-nginx-proxy-pod-nginx-conf.d
-...
-```
-
-## Starting the Pod
+### Starting the Pod
 
 ```shell
 podman play kube pod.yml
 ```
 
-## Visiting the Page
+Once the pod is running the below resources are available amogst others.
 
-Once the pod is running navigate to http://127.0.0.1:8080, this will open the nginx main page.
-Next visit the sample endpoint at /api and the tomcat main page at /tomcat.
+- [Nginx](http://127.0.0.1:8080)
+- [API Docs](http://localhost:8080/api/docs)
+- [Tomcat](http://localhost:8080/tomcat/docs)
 
-## Run individual container
+## Setup
 
-A pod can be created with 
+### Creating a Pod
 
 ```shell
 podman pod create --name playground -p 8080:80
@@ -81,18 +58,35 @@ podman run --rm -d -ti --pod playground --name tomcat \
 
 ### Mongo DB
 
+Since a persistent volume is mapped, the init env variables have only affect when the volume hasn't been used before
+and the container starts for the first time.
+
 ```shell
-podman run --rm -d -ti --pod playground --name mongo \
-    -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
-    -e MONGO_INITDB_ROOT_PASSWORD=secret \
-    -e MONGO_INITDB_DATABASE=admin \
-    mongo:custom
+podman run --rm -d -ti --name mongo --pod playground \
+  -v $PWD/mongo/data:/data/db:Z \
+  -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
+  -e MONGO_INITDB_ROOT_PASSWORD=secret \
+  -e MONGO_INITDB_DATABASE=admin \
+  mongo:custom
 ```
 
-## Generating a pod.yaml
+## Kube
+
+Read more on the pod.yaml in [this article](https://www.redhat.com/sysadmin/compose-podman-pods)
+
+### Generate Pod Yaml
 
 ```shell
 podman generate kube playground >> ./pod.yaml
 ```
 
-Find more info in this [article](https://www.redhat.com/sysadmin/compose-podman-pods)
+Don't forget to append `:Z` to each mount path, if you are on selinux. I.E.
+
+```yaml
+...
+volumeMounts:
+  - mountPath: /etc/nginx/conf.d:Z
+    name: home-blue-nginx-proxy-pod-nginx-conf.d
+...
+```
+

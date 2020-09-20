@@ -7,18 +7,17 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  creationTimestamp: "2020-09-20T22:23:19Z"
+  creationTimestamp: "2020-09-20T23:45:34Z"
   labels:
     app: playground
   name: playground
 spec:
   containers:
   - command:
-    - nginx
-    - -g
-    - daemon off;
-    image: docker.io/library/nginx:latest
-    name: nginx
+    - catalina.sh
+    - run
+    image: localhost/tomcat:custom
+    name: tomcat
     ports:
     - containerPort: 80
       hostPort: 8080
@@ -32,16 +31,18 @@ spec:
     stdin: true
     tty: true
     volumeMounts:
-    - mountPath: /etc/nginx/conf.d:Z
-      name: home-blue-nginx-proxy-pod-nginx-conf.d
-    workingDir: /
+    - mountPath: /usr/local/tomcat/conf/context.xml:Z
+      name: home-blue-nginx-proxy-pod-tomcat-context.xml
+    - mountPath: /usr/local/tomcat/conf/tomcat-users.xml:Z
+      name: home-blue-nginx-proxy-pod-tomcat-tomcat-users.xml
+    workingDir: /usr/local/tomcat
   - command:
     - mongod
     env:
-    - name: MONGO_INITDB_ROOT_PASSWORD
-      value: secret
     - name: MONGO_INITDB_ROOT_USERNAME
       value: mongoadmin
+    - name: MONGO_INITDB_ROOT_PASSWORD
+      value: secret
     - name: MONGO_INITDB_DATABASE
       value: admin
     image: localhost/mongo:custom
@@ -54,24 +55,28 @@ spec:
       readOnlyRootFilesystem: false
     stdin: true
     tty: true
+    volumeMounts:
+    - mountPath: /data/db:Z
+      name: home-blue-nginx-proxy-pod-mongo-data
     workingDir: /
   - command:
-    - catalina.sh
-    - run
-    image: localhost/tomcat:custom
-    name: tomcat
+    - nginx
+    - -g
+    - daemon off;
+    image: docker.io/library/nginx:latest
+    name: nginx
     resources: {}
     securityContext:
       allowPrivilegeEscalation: true
       capabilities: {}
       privileged: false
       readOnlyRootFilesystem: false
+    stdin: true
+    tty: true
     volumeMounts:
-    - mountPath: /usr/local/tomcat/conf/tomcat-users.xml:Z
-      name: home-blue-nginx-proxy-pod-tomcat-tomcat-users.xml
-    - mountPath: /usr/local/tomcat/conf/context.xml:Z
-      name: home-blue-nginx-proxy-pod-tomcat-context.xml
-    workingDir: /usr/local/tomcat
+    - mountPath: /etc/nginx/conf.d:Z
+      name: home-blue-nginx-proxy-pod-nginx-conf.d
+    workingDir: /
   - command:
     - uvicorn
     - main:app
@@ -94,20 +99,24 @@ spec:
     workingDir: /app
   volumes:
   - hostPath:
-      path: /home/blue/nginx-proxy-pod/nginx/conf.d
+      path: /home/blue/nginx-proxy-pod/python-api/app
       type: Directory
-    name: home-blue-nginx-proxy-pod-nginx-conf.d
-  - hostPath:
-      path: /home/blue/nginx-proxy-pod/tomcat/tomcat-users.xml
-      type: File
-    name: home-blue-nginx-proxy-pod-tomcat-tomcat-users.xml
+    name: home-blue-nginx-proxy-pod-python-api-app
   - hostPath:
       path: /home/blue/nginx-proxy-pod/tomcat/context.xml
       type: File
     name: home-blue-nginx-proxy-pod-tomcat-context.xml
   - hostPath:
-      path: /home/blue/nginx-proxy-pod/python-api/app
+      path: /home/blue/nginx-proxy-pod/tomcat/tomcat-users.xml
+      type: File
+    name: home-blue-nginx-proxy-pod-tomcat-tomcat-users.xml
+  - hostPath:
+      path: /home/blue/nginx-proxy-pod/mongo/data
       type: Directory
-    name: home-blue-nginx-proxy-pod-python-api-app
+    name: home-blue-nginx-proxy-pod-mongo-data
+  - hostPath:
+      path: /home/blue/nginx-proxy-pod/nginx/conf.d
+      type: Directory
+    name: home-blue-nginx-proxy-pod-nginx-conf.d
 status: {}
 
