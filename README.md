@@ -8,6 +8,7 @@ Example pod configuration. Nginx reverse proxy, python api, and tomcat.
 
 ```
 podman build -t flask python-api/
+podman build -t tomcat:custom tomcat/
 ```
 
 ### adjust the volume mapping 
@@ -15,15 +16,23 @@ podman build -t flask python-api/
 In the pod.yaml, change the path for both volumes to the path of the repoistory.
 
 ```yaml
-  volumes:
+...
+volumes:
   - hostPath:
-      path: /home/blue/nginx-proxy-pod/nginx
-      type: Directory
-    name: home-blue-nginx-proxy-pod-nginx
-  - hostPath:
-      path: /home/blue/nginx-proxy-pod/python-api/app
-      type: Directory
-    name: home-blue-nginx-proxy-pod-python-api-app
+      path: /home/blue/nginx-proxy-pod/tomcat/tomcat-users.xml
+      type: File
+    name: home-blue-nginx-proxy-pod-tomcat-tomcat-users.xml
+...
+```
+
+Don't forget to append `:Z` to each mount path, if you are on selinux. I.E.
+
+```yaml
+...
+volumeMounts:
+  - mountPath: /etc/nginx/conf.d:Z
+    name: home-blue-nginx-proxy-pod-nginx-conf.d
+...
 ```
 
 ## Starting the Pod
@@ -67,9 +76,8 @@ podman run -d --pod playground --name flask \
 ```shell
 podman run -d --pod playground --name tomcat \
   -v $PWD/tomcat/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml:Z \
-  -v $PWD/tomcat/context.xml:/usr/local/tomcat/webapps.dist/manager/META-INF/context.xml:Z \
-  tomcat \
-  /bin/bash -c "mv /usr/local/tomcat/webapps /usr/local/tomcat/webapps2; mv /usr/local/tomcat/webapps.dist /usr/local/tomcat/webapps; catalina.sh run"
+  -v $PWD/tomcat/context.xml:/usr/local/tomcat/conf/context.xml:Z \
+  tomcat:custom
 ```
 
 ## Generating a pod.yaml

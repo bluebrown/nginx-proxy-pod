@@ -1,5 +1,3 @@
-# Generation of Kubernetes YAML is still under development!
-#
 # Save the output of this file and use kubectl create -f to import
 # it into Kubernetes.
 #
@@ -7,18 +5,16 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  creationTimestamp: "2020-09-19T21:26:09Z"
+  creationTimestamp: "2020-09-20T08:23:14Z"
   labels:
     app: playground
   name: playground
 spec:
   containers:
   - command:
-    - /bin/bash
-    - -c
-    - mv /usr/local/tomcat/webapps /usr/local/tomcat/webapps2; mv /usr/local/tomcat/webapps.dist
-      /usr/local/tomcat/webapps; catalina.sh run
-    image: docker.io/library/tomcat:latest
+    - catalina.sh
+    - run
+    image: localhost/tomcat:custom
     name: tomcat
     ports:
     - containerPort: 80
@@ -31,36 +27,13 @@ spec:
       privileged: false
       readOnlyRootFilesystem: false
     volumeMounts:
-    - mountPath: /usr/local/tomcat/webapps.dist/manager/META-INF/context.xml:Z
-      name: home-blue-nginx-proxy-pod-tomcat-context.xml
     - mountPath: /usr/local/tomcat/conf/tomcat-users.xml:Z
       name: home-blue-nginx-proxy-pod-tomcat-tomcat-users.xml
+    - mountPath: /usr/local/tomcat/conf/context.xml:Z
+      name: home-blue-nginx-proxy-pod-tomcat-context.xml
     workingDir: /usr/local/tomcat
   - command:
-    - flask
-    - run
-    - --host
-    - 0.0.0.0
-    env:
-    - name: FLASK_DEBUG
-      value: "1"
-    - name: FLASK_APP
-      value: app.py
-    - name: FLASK_ENV
-      value: development
-    image: localhost/test:latest
-    name: flask
-    resources: {}
-    securityContext:
-      allowPrivilegeEscalation: true
-      capabilities: {}
-      privileged: false
-      readOnlyRootFilesystem: false
-    volumeMounts:
-    - mountPath: /app:Z
-      name: home-blue-nginx-proxy-pod-python-api-app
-    workingDir: /app
-  - command:
+    - /docker-entrypoint.sh
     - nginx
     - -g
     - daemon off;
@@ -78,19 +51,39 @@ spec:
     - mountPath: /usr/share/nginx/html:Z
       name: home-blue-nginx-proxy-pod-nginx-html
     workingDir: /
+  - command:
+    - flask
+    - run
+    - --host
+    - 0.0.0.0
+    env:
+    - name: FLASK_ENV
+      value: development
+    - name: FLASK_APP
+      value: app.py
+    - name: FLASK_DEBUG
+      value: "1"
+    image: localhost/flask:latest
+    name: flask
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: true
+      capabilities: {}
+      privileged: false
+      readOnlyRootFilesystem: false
+    volumeMounts:
+    - mountPath: /app:Z
+      name: home-blue-nginx-proxy-pod-python-api-app
+    workingDir: /app
   volumes:
-  - hostPath:
-      path: /home/blue/nginx-proxy-pod/tomcat/context.xml
-      type: File
-    name: home-blue-nginx-proxy-pod-tomcat-context.xml
   - hostPath:
       path: /home/blue/nginx-proxy-pod/tomcat/tomcat-users.xml
       type: File
     name: home-blue-nginx-proxy-pod-tomcat-tomcat-users.xml
   - hostPath:
-      path: /home/blue/nginx-proxy-pod/python-api/app
-      type: Directory
-    name: home-blue-nginx-proxy-pod-python-api-app
+      path: /home/blue/nginx-proxy-pod/tomcat/context.xml
+      type: File
+    name: home-blue-nginx-proxy-pod-tomcat-context.xml
   - hostPath:
       path: /home/blue/nginx-proxy-pod/nginx/conf.d
       type: Directory
@@ -99,5 +92,9 @@ spec:
       path: /home/blue/nginx-proxy-pod/nginx/html
       type: Directory
     name: home-blue-nginx-proxy-pod-nginx-html
+  - hostPath:
+      path: /home/blue/nginx-proxy-pod/python-api/app
+      type: Directory
+    name: home-blue-nginx-proxy-pod-python-api-app
 status: {}
 

@@ -20,25 +20,39 @@
     </header>
 
     <div class="grid grid-cols-3 gap-4">
-      <div class="mb-3 p-3 bg-white rounded-md shadow-md">
-        <ul class="flex -mx-1">
-          <li class="px-1">
 
-          </li>
-          <li class="px-1">
-            <a class="text-white hover:bg-blue-600 border bg-blue-700 px-3 py-1 leading-none rounded-sm"
-              href="/tomcat">Tomcat</a>
-          </li>
-        </ul>
-      </div>
-      <div class="mb-3 p-3 bg-white rounded-md shadow-md">
-        <p class="mb-2" id="api-stats"></p>
-        <a class="text-white hover:bg-blue-600 border bg-blue-700 px-3 py-1 leading-none rounded-sm"
-        href="/api">Visit API</a>
-      </div>
-      <div class="mb-3 p-3 bg-white rounded-md shadow-md">
 
+      <div class="mb-3 p-3 bg-white rounded-md shadow-md flex flex-col">
+        <span class="flex-1 mb-2">
+          <label class="font-semibold text-sm block">Tomcat</label>
+        </span>
+        <span>
+          <a class="text-white hover:bg-blue-600 border bg-blue-700 px-3 py-1 leading-none rounded-sm"
+            href="/tomcat/docs/">Visit the Docs</a>
+        </span>
       </div>
+
+
+      <div class="mb-3 p-3 bg-white rounded-md shadow-md flex flex-col">
+        <span class="flex-1 mb-2">
+          <label class="font-semibold text-sm block">Flask</label>
+          <textarea id="api-stats" class="w-full mt-2 px-2 py-1" rows="2" disabled></textarea>
+        </span>
+        <span>
+          <a class="text-white hover:bg-blue-600 border bg-blue-700 px-3 py-1 leading-none rounded-sm"
+            href="/api/">Visit the API</a>
+        </span>
+      </div>
+
+      <div class="mb-3 p-3 bg-white rounded-md shadow-md flex flex-col">
+        <span class="flex-1 mb-2">
+          <label class="font-semibold text-sm block"></label>
+        </span>
+        <span>
+
+        </span>
+      </div>
+
     </div>
 
   </article>
@@ -47,7 +61,7 @@
     const getAPIStats = () => {
       (async () => {
         const { status, timestamp } = await (await fetch('/api')).json()
-        document.getElementById('api-stats').innerHTML = `Status: ${status} <br> Timestamp: ${timestamp}`
+        document.getElementById('api-stats').value = `Status: ${status}\nTimestamp: ${timestamp}`
       })().catch(console.warn)
     }
     getAPIStats()
