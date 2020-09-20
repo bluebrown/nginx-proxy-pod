@@ -1,3 +1,5 @@
+# Generation of Kubernetes YAML is still under development!
+#
 # Save the output of this file and use kubectl create -f to import
 # it into Kubernetes.
 #
@@ -5,21 +7,59 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  creationTimestamp: "2020-09-20T08:23:14Z"
+  creationTimestamp: "2020-09-20T22:23:19Z"
   labels:
     app: playground
   name: playground
 spec:
   containers:
   - command:
-    - catalina.sh
-    - run
-    image: localhost/tomcat:custom
-    name: tomcat
+    - nginx
+    - -g
+    - daemon off;
+    image: docker.io/library/nginx:latest
+    name: nginx
     ports:
     - containerPort: 80
       hostPort: 8080
       protocol: TCP
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: true
+      capabilities: {}
+      privileged: false
+      readOnlyRootFilesystem: false
+    stdin: true
+    tty: true
+    volumeMounts:
+    - mountPath: /etc/nginx/conf.d:Z
+      name: home-blue-nginx-proxy-pod-nginx-conf.d
+    workingDir: /
+  - command:
+    - mongod
+    env:
+    - name: MONGO_INITDB_ROOT_PASSWORD
+      value: secret
+    - name: MONGO_INITDB_ROOT_USERNAME
+      value: mongoadmin
+    - name: MONGO_INITDB_DATABASE
+      value: admin
+    image: localhost/mongo:custom
+    name: mongo
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: true
+      capabilities: {}
+      privileged: false
+      readOnlyRootFilesystem: false
+    stdin: true
+    tty: true
+    workingDir: /
+  - command:
+    - catalina.sh
+    - run
+    image: localhost/tomcat:custom
+    name: tomcat
     resources: {}
     securityContext:
       allowPrivilegeEscalation: true
@@ -33,49 +73,30 @@ spec:
       name: home-blue-nginx-proxy-pod-tomcat-context.xml
     workingDir: /usr/local/tomcat
   - command:
-    - /docker-entrypoint.sh
-    - nginx
-    - -g
-    - daemon off;
-    image: docker.io/library/nginx:latest
-    name: nginx
+    - uvicorn
+    - main:app
+    - --reload
+    - --root-path
+    - /api
+    image: localhost/fastapi:latest
+    name: fastapi
     resources: {}
     securityContext:
       allowPrivilegeEscalation: true
       capabilities: {}
       privileged: false
       readOnlyRootFilesystem: false
-    volumeMounts:
-    - mountPath: /etc/nginx/conf.d:Z
-      name: home-blue-nginx-proxy-pod-nginx-conf.d
-    - mountPath: /usr/share/nginx/html:Z
-      name: home-blue-nginx-proxy-pod-nginx-html
-    workingDir: /
-  - command:
-    - flask
-    - run
-    - --host
-    - 0.0.0.0
-    env:
-    - name: FLASK_ENV
-      value: development
-    - name: FLASK_APP
-      value: app.py
-    - name: FLASK_DEBUG
-      value: "1"
-    image: localhost/flask:latest
-    name: flask
-    resources: {}
-    securityContext:
-      allowPrivilegeEscalation: true
-      capabilities: {}
-      privileged: false
-      readOnlyRootFilesystem: false
+    stdin: true
+    tty: true
     volumeMounts:
     - mountPath: /app:Z
       name: home-blue-nginx-proxy-pod-python-api-app
     workingDir: /app
   volumes:
+  - hostPath:
+      path: /home/blue/nginx-proxy-pod/nginx/conf.d
+      type: Directory
+    name: home-blue-nginx-proxy-pod-nginx-conf.d
   - hostPath:
       path: /home/blue/nginx-proxy-pod/tomcat/tomcat-users.xml
       type: File
@@ -84,14 +105,6 @@ spec:
       path: /home/blue/nginx-proxy-pod/tomcat/context.xml
       type: File
     name: home-blue-nginx-proxy-pod-tomcat-context.xml
-  - hostPath:
-      path: /home/blue/nginx-proxy-pod/nginx/conf.d
-      type: Directory
-    name: home-blue-nginx-proxy-pod-nginx-conf.d
-  - hostPath:
-      path: /home/blue/nginx-proxy-pod/nginx/html
-      type: Directory
-    name: home-blue-nginx-proxy-pod-nginx-html
   - hostPath:
       path: /home/blue/nginx-proxy-pod/python-api/app
       type: Directory

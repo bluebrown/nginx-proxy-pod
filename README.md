@@ -7,7 +7,7 @@ Example pod configuration. Nginx reverse proxy, python api, and tomcat.
 ### Build the docker images
 
 ```
-podman build -t flask python-api/
+podman build -t fastapi python-api/
 podman build -t tomcat:custom tomcat/
 podman build -t mongo:custom mongo/  
 ```
@@ -63,12 +63,11 @@ podman run --rm -d -ti --pod playground --name nginx \
   nginx
 ```
 
-### Flask
+### FastAPI
 
 ```shell
-podman run --rm -d -ti --pod playground --name flask \
-  -v $PWD/python-api/app:/app:Z \
-  flask:custom
+podman run --rm -d -ti --pod playground --name fastapi -v \
+  $PWD/python-api/app:/app:Z fastapi
 ```
 
 ### Tomcat
