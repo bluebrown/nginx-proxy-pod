@@ -1,6 +1,12 @@
 #  Nginx Proxy Pod
 
-Example pod configuration. Nginx reverse proxy, python api, tomcat and mongo db.
+Example pod configuration for micro service architecture.
+
+- Nginx
+- Mongo DB
+- Memcache
+- Python Rest API
+- Tomcat 9
 
 ## Quick Start
 
@@ -13,6 +19,9 @@ podman build -t mongo:custom mongo/
 ```
 
 ### Starting the Pod
+
+If you pulled the repository to a different location than `$HOME/podman/nginx-proxy-pod`,
+you need edit the volume location in the pod.yaml before running the below command.
 
 ```shell
 podman play kube pod.yml
@@ -40,20 +49,10 @@ podman run --rm -d -ti --pod playground --name nginx \
   nginx
 ```
 
-### FastAPI
+### Memcache
 
 ```shell
-podman run --rm -d -ti --pod playground --name fastapi -v \
-  $PWD/python-api/app:/app:Z fastapi
-```
-
-### Tomcat
-
-```shell
-podman run --rm -d -ti --pod playground --name tomcat \
-  -v $PWD/tomcat/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml:Z \
-  -v $PWD/tomcat/context.xml:/usr/local/tomcat/conf/context.xml:Z \
-  tomcat:custom
+podman run --rm -d -ti --name memcache --pod playground memcached
 ```
 
 ### Mongo DB
@@ -68,6 +67,21 @@ podman run --rm -d -ti --name mongo --pod playground \
   -e MONGO_INITDB_ROOT_PASSWORD=secret \
   -e MONGO_INITDB_DATABASE=admin \
   mongo:custom
+```
+
+### FastAPI
+
+```shell
+podman run --rm -d -ti --pod playground --name fastapi -v $PWD/python-api/app:/app:Z fastapi
+```
+
+### Tomcat
+
+```shell
+podman run --rm -d -ti --pod playground --name tomcat \
+  -v $PWD/tomcat/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml:Z \
+  -v $PWD/tomcat/context.xml:/usr/local/tomcat/conf/context.xml:Z \
+  tomcat:custom
 ```
 
 ## Kube
