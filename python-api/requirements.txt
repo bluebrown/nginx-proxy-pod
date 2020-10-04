@@ -2,3 +2,7 @@ fastapi==0.61.1
 motor==2.2.0
 uvicorn==0.11.8
 aiomcache==0.6.0
+databases==0.3.2
+databases[mysql]
+aiomysql==0.0.20
+mysqlclient==2.0.1

@@ -3,6 +3,7 @@
 Example pod configuration for micro service architecture.
 
 - Nginx
+- MySQL
 - Mongo DB
 - Memcache
 - Python Rest API
@@ -47,6 +48,15 @@ podman pod create --name playground -p 8080:80
 podman run --rm -d -ti --pod playground --name nginx \
   -v $PWD/nginx/conf.d:/etc/nginx/conf.d:Z \
   nginx
+```
+
+### MySQL
+
+```shell
+podman run --rm -d -ti --pod playground --name mysql \
+  -v $PWD/mysql/data:/var/lib/mysql:Z  \
+  -e MYSQL_ROOT_PASSWORD=my-secret-pw \
+  mysql
 ```
 
 ### Memcache

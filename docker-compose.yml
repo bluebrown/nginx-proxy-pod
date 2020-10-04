@@ -1,0 +1,30 @@
+
+version: "3.8"
+services:
+
+  nginx:
+    image: nginx
+    ports:
+      - 8080:80
+    volumnes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+
+  tomcat:
+    build: "./tomcat"
+    image: tomcat:custom
+
+  mysql5:
+    image: mysql:5
+
+  mongo:
+    build: "./mongo"
+    image: mongo:custom
+  
+  memcache:
+    image: memcached
+  
+  fastapi:
+    build: "./python-api"
+    image: fastiapi
+    volumnes:
+      - ./python-api/app:/app
